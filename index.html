@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
-$1<meta name="robots" content="noindex,nofollow" />
+<meta name="robots" content="noindex,nofollow" />
 <title>生日信 🐱✨</title>
 <style>
   :root{
@@ -80,6 +80,7 @@ $1<meta name="robots" content="noindex,nofollow" />
   footer{opacity:.9}
 </style>
 </head>
+  
 <body>
   <header>
     <div class="wrap">
@@ -346,5 +347,73 @@ function createDrawer(item){
 
 DATA.forEach(item=> $grid.appendChild(createDrawer(item)));
 </script>
+  <!-- 右下角：音乐按钮（点击开始/关闭） -->
+<button id="musicToggle"
+  aria-label="播放音乐"
+  style="position:fixed; right:16px; bottom:16px; z-index:9999;
+         padding:10px 12px; border-radius:999px; border:1px solid #ddd;
+         background:#fff; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,.08); cursor:pointer;">
+  ▶️ 播放《小宇》
+</button>
+
+<!-- 背景音乐（循环） -->
+<audio id="bgm" src="xiaoyu.mp3" preload="auto" loop></audio>
+
+<script>
+(function () {
+  const audio = document.getElementById('bgm');
+  const btn   = document.getElementById('musicToggle');
+
+  // 初始不自动播（为适配手机策略）；等待用户第一次点击
+  let hasStarted = false;
+
+  function setBtn(isOn){
+    if (isOn) {
+      btn.textContent = '🔊 关闭《小宇》';
+      btn.setAttribute('aria-label','关闭音乐');
+    } else {
+      btn.textContent = '▶️ 播放《小宇》';
+      btn.setAttribute('aria-label','播放音乐');
+    }
+  }
+
+  btn.addEventListener('click', async () => {
+    // 第一次点击：开始播放并循环
+    if (!hasStarted) {
+      try {
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+        hasStarted = true;
+        setBtn(true);
+      } catch (e) {
+        // 少数设备第一次依然失败：提示再点一次
+        alert('需要再点一下才能播放喔～');
+      }
+      return;
+    }
+
+    // 已经开始过：在“开声/静音”之间切换
+    if (audio.muted || audio.volume === 0) {
+      audio.muted = false;
+      audio.volume = 1;
+      if (audio.paused) { try { await audio.play(); } catch(_){} }
+      setBtn(true);
+    } else {
+      audio.muted = true;
+      audio.volume = 0;
+      setBtn(false);
+    }
+  });
+
+  // 页面隐藏/返回前台的小友好：回到前台时保持当前静音状态，不强行播放
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && hasStarted && !audio.muted && audio.paused) {
+      audio.play().catch(()=>{});
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
